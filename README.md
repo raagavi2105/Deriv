@@ -41,7 +41,7 @@ Automatically processes customer support messages through a 14-stage AI pipeline
 
 **Escalation & Triage Result*
 
-![JEscalation & Triage Result](Image/2.png)
+![Escalation & Triage Result](Image/2.png)
 
 **Compilance Violations**
 
