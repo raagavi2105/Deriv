@@ -3,6 +3,7 @@
 A production-style, multi-stage AI orchestration pipeline for fintech customer support triage. Built with **Meta Llama 3.1 8B Instant** via **Groq API**, **FastAPI** backend, and a live analytics dashboard.
 
 Live Deployed Link: https://deriv-omega.vercel.app/
+Note: If it prompts for allow access to other apps and access, please approve, then only the pipeline will run and output will be shown.
 ---
 
 ## What It Does
