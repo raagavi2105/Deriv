@@ -1,0 +1,22 @@
+[
+  {"id": 1, "message": "My deposit hasn't appeared in my account after 3 days. I transferred $500 from my bank last Monday and it still shows as pending."},
+  {"id": 2, "message": "I can't log into my trading account. I keep getting 'invalid credentials' even though I just reset my password 10 minutes ago."},
+  {"id": 3, "message": "I need a compliance audit report for my account activity for Q4 2023. Our external auditors are requesting it before end of week."},
+  {"id": 4, "message": "How do I enable two-factor authentication on my account? I want to improve my security settings."},
+  {"id": 5, "message": "What are the trading hours for major forex pairs on your platform? Are there any blackout periods over the weekend?"},
+  {"id": 6, "message": "I believe I've been scammed! Someone accessed my account without my knowledge and withdrew all my funds. I want to file a formal complaint and will contact my bank to reverse the charges immediately."},
+  {"id": 7, "message": "My withdrawal request has been pending for 10 days now. This is completely unacceptable. I need my $2,000 back immediately or I will contact the financial regulator and my solicitor."},
+  {"id": 8, "message": "The mobile app keeps crashing when I try to open the charts view. This started happening after the latest update yesterday."},
+  {"id": 9, "message": "I was charged twice for my monthly subscription this billing cycle. Please look into the duplicate charge of $29.99."},
+  {"id": 10, "message": "What is the minimum deposit required to start trading CFDs on your platform? Do you offer a demo account?"},
+  {"id": 11, "message": "My account has been frozen without any explanation or prior notice. I have significant funds in there that I urgently need access to."},
+  {"id": 12, "message": "I need to update my KYC documents. My passport expired last month and I want to submit the new one to keep my account verified."},
+  {"id": 13, "message": "The REST API is returning a 403 Forbidden error when I attempt to place orders programmatically. My API key appears to have the correct permissions set."},
+  {"id": 14, "message": "I am going to take legal action if my account is not unfrozen within 24 hours. I have already consulted a lawyer and we are prepared to sue for damages and file a formal complaint with the FCA."},
+  {"id": 15, "message": "How does your variable spread pricing work for EUR/USD? I noticed the spread changes significantly throughout the trading day."},
+  {"id": 16, "message": "I accidentally entered a wrong bank account number when submitting my withdrawal request. Can this be corrected before it processes?"},
+  {"id": 17, "message": "There is a serious discrepancy in my trade history. Multiple trades appear in my statement that I did not execute. I suspect unauthorized access to my account."},
+  {"id": 18, "message": "Your platform showed me an advertisement guaranteeing a 15% monthly return on investment. This seems potentially fraudulent and I want to report it to the regulator."},
+  {"id": 19, "message": "I cannot upload my identity verification documents through the portal. The upload button does not respond at all in Chrome or Firefox."},
+  {"id": 20, "message": "I want to permanently close my account and withdraw all remaining funds. Can you provide the full account closure process and timeline?"}
+]

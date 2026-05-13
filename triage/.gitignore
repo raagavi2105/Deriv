@@ -1,0 +1,8 @@
+.venv/
+.env
+artifacts/
+corrections.jsonl
+__pycache__/
+*.pyc
+*.pyo
+*.log

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fintech AI Support Triage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-low      { background:#166534; color:#bbf7d0; }
+    .badge-medium   { background:#854d0e; color:#fef9c3; }
+    .badge-high     { background:#7c2d12; color:#fed7aa; }
+    .badge-critical { background:#7f1d1d; color:#fecaca; }
+    .badge-payments      { background:#1e3a5f; color:#bae6fd; }
+    .badge-technical     { background:#312e81; color:#c7d2fe; }
+    .badge-compliance    { background:#701a75; color:#f5d0fe; }
+    .badge-account       { background:#1a4731; color:#d1fae5; }
+    .badge-product_query { background:#3b2800; color:#fde68a; }
+    .badge-escalation    { background:#7f1d1d; color:#fecaca; }
+    .badge-pass { background:#166534; color:#bbf7d0; }
+    .badge-fail { background:#7f1d1d; color:#fecaca; }
+    tr:hover { background:#1e3a5f22; }
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:#1e293b; }
+    ::-webkit-scrollbar-thumb { background:#475569; border-radius:3px; }
+    .alert-box { border-left: 4px solid #ef4444; background:#1c0a0a; }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-white">🏦 Fintech AI Support Triage</h1>
+      <p class="text-slate-400 mt-1">Multi-stage AI orchestration pipeline · <span id="model-badge" class="text-sky-400">Groq / llama-3.1-8b-instant</span></p>
+    </div>
+    <button onclick="loadAll()" class="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2 rounded-lg text-sm font-semibold transition">↻ Refresh</button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="kpi-cards">
+    <div class="card p-5"><p class="text-slate-400 text-sm">Total Messages</p><p class="text-4xl font-bold text-white mt-1" id="kpi-total">—</p></div>
+    <div class="card p-5"><p class="text-slate-400 text-sm">High / Critical Risk</p><p class="text-4xl font-bold text-red-400 mt-1" id="kpi-highrisk">—</p></div>
+    <div class="card p-5"><p class="text-slate-400 text-sm">Compliance Failures</p><p class="text-4xl font-bold text-orange-400 mt-1" id="kpi-compliance">—</p></div>
+    <div class="card p-5"><p class="text-slate-400 text-sm">Accuracy Delta</p><p class="text-4xl font-bold text-emerald-400 mt-1" id="kpi-delta">—</p></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="card p-6">
+      <h2 class="text-lg font-semibold mb-4 text-slate-200">Category Distribution</h2>
+      <canvas id="categoryChart" height="220"></canvas>
+    </div>
+    <div class="card p-6">
+      <h2 class="text-lg font-semibold mb-4 text-slate-200">Risk Distribution</h2>
+      <canvas id="riskChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Escalation Alerts -->
+  <div class="mb-8" id="alerts-section" style="display:none">
+    <h2 class="text-lg font-semibold mb-3 text-red-400">🚨 Escalation Alerts</h2>
+    <div id="alerts-container" class="space-y-3"></div>
+  </div>
+
+  <!-- Triage Table -->
+  <div class="card p-6 mb-8">
+    <h2 class="text-lg font-semibold mb-4 text-slate-200">Triage Results</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-slate-400 border-b border-slate-700">
+            <th class="text-left py-2 px-3">ID</th>
+            <th class="text-left py-2 px-3">Message</th>
+            <th class="text-left py-2 px-3">Category</th>
+            <th class="text-left py-2 px-3">Conf</th>
+            <th class="text-left py-2 px-3">Risk</th>
+            <th class="text-left py-2 px-3">Reclassified</th>
+            <th class="text-left py-2 px-3">Compliance</th>
+            <th class="text-left py-2 px-3">Team</th>
+            <th class="text-left py-2 px-3">SLA</th>
+          </tr>
+        </thead>
+        <tbody id="triage-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Compliance Failures -->
+  <div class="card p-6 mb-8">
+    <h2 class="text-lg font-semibold mb-4 text-slate-200">Compliance Violations</h2>
+    <div id="compliance-list" class="space-y-3"></div>
+  </div>
+
+  <!-- LLM Log -->
+  <div class="card p-6 mb-8">
+    <h2 class="text-lg font-semibold mb-4 text-slate-200">LLM Observability Log</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-slate-400 border-b border-slate-700">
+            <th class="text-left py-2 px-3">Stage</th>
+            <th class="text-left py-2 px-3">Model</th>
+            <th class="text-left py-2 px-3">Prompt Hash</th>
+            <th class="text-left py-2 px-3">Few-Shot</th>
+            <th class="text-left py-2 px-3">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="log-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:8000';
+    let categoryChart, riskChart;
+
+    const CATEGORY_COLORS = {
+      payments:'#38bdf8', technical:'#818cf8', compliance:'#e879f9',
+      account:'#34d399', product_query:'#fbbf24', escalation:'#f87171'
+    };
+    const RISK_COLORS = { low:'#34d399', medium:'#fbbf24', high:'#f97316', critical:'#ef4444' };
+
+    async function fetchJSON(endpoint) {
+      try {
+        const r = await fetch(API + endpoint);
+        return await r.json();
+      } catch { return null; }
+    }
+
+    function riskBadge(level) {
+      return `<span class="badge badge-${level}">${level}</span>`;
+    }
+    function catBadge(cat) {
+      return `<span class="badge badge-${cat}">${cat}</span>`;
+    }
+
+    async function loadAll() {
+      const [analytics, triage, compliance, logs, routing] = await Promise.all([
+        fetchJSON('/api/analytics'),
+        fetchJSON('/api/triage'),
+        fetchJSON('/api/compliance'),
+        fetchJSON('/api/logs'),
+        fetchJSON('/api/routing'),
+      ]);
+
+      if (analytics) renderAnalytics(analytics);
+      if (triage && triage.length) renderTriage(triage);
+      if (compliance && compliance.length) renderCompliance(compliance, triage);
+      if (logs && logs.length) renderLogs(logs);
+      if (routing && routing.length) renderAlerts(routing);
+    }
+
+    function renderAnalytics(a) {
+      document.getElementById('kpi-total').textContent = a.total_messages ?? '—';
+      const highRisk = (a.risk_distribution?.high ?? 0) + (a.risk_distribution?.critical ?? 0);
+      document.getElementById('kpi-highrisk').textContent = highRisk;
+      document.getElementById('kpi-compliance').textContent = a.compliance_failure_count ?? '—';
+      const delta = a.accuracy_delta ?? 0;
+      document.getElementById('kpi-delta').textContent = (delta >= 0 ? '+' : '') + (delta * 100).toFixed(1) + '%';
+
+      // Category chart
+      const catLabels = Object.keys(a.category_distribution ?? {});
+      const catData   = Object.values(a.category_distribution ?? {});
+      if (categoryChart) categoryChart.destroy();
+      categoryChart = new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: {
+          labels: catLabels,
+          datasets: [{ data: catData, backgroundColor: catLabels.map(l => CATEGORY_COLORS[l] ?? '#94a3b8'), borderWidth: 0 }]
+        },
+        options: { plugins: { legend: { labels: { color: '#94a3b8' } } } }
+      });
+
+      // Risk chart
+      const riskLabels = ['low','medium','high','critical'];
+      const riskData   = riskLabels.map(l => a.risk_distribution?.[l] ?? 0);
+      if (riskChart) riskChart.destroy();
+      riskChart = new Chart(document.getElementById('riskChart'), {
+        type: 'bar',
+        data: {
+          labels: riskLabels,
+          datasets: [{ label: 'Messages', data: riskData,
+            backgroundColor: riskLabels.map(l => RISK_COLORS[l]),
+            borderRadius: 6 }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+            y: { ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: '#334155' } }
+          }
+        }
+      });
+    }
+
+    function renderTriage(records) {
+      const tbody = document.getElementById('triage-tbody');
+      tbody.innerHTML = records.map(r => {
+        const improved = r.improved
+          ? '<span class="text-emerald-400">↑</span>'
+          : '<span class="text-slate-500">–</span>';
+        const msg = r.message.length > 60 ? r.message.slice(0, 60) + '…' : r.message;
+        return `<tr class="border-b border-slate-800">
+          <td class="py-2 px-3 text-slate-400">${r.id}</td>
+          <td class="py-2 px-3 text-slate-300 max-w-xs" title="${r.message}">${msg}</td>
+          <td class="py-2 px-3">${catBadge(r.initial_category)}</td>
+          <td class="py-2 px-3 text-slate-300">${(r.initial_confidence * 100).toFixed(0)}%</td>
+          <td class="py-2 px-3">${riskBadge(r.risk_level)}</td>
+          <td class="py-2 px-3">${catBadge(r.reclassified_category)} ${improved}</td>
+          <td class="py-2 px-3"><span class="badge ${r.compliance_passed ? 'badge-pass' : 'badge-fail'}">${r.compliance_passed ? 'PASS' : 'FAIL'}</span></td>
+          <td class="py-2 px-3 text-slate-400 text-xs">${r.routing_team}</td>
+          <td class="py-2 px-3 text-slate-400 text-xs">${r.routing_sla}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderCompliance(results, triage) {
+      const msgMap = {};
+      (triage || []).forEach(t => { msgMap[t.id] = t.message; });
+      const failures = results.filter(r => !r.passed);
+      const el = document.getElementById('compliance-list');
+      if (!failures.length) {
+        el.innerHTML = '<p class="text-emerald-400 text-sm">✓ No compliance violations found.</p>';
+        return;
+      }
+      el.innerHTML = failures.map(f => `
+        <div class="border border-orange-800 rounded-lg p-4 bg-orange-950/30">
+          <div class="flex items-start gap-3">
+            <span class="text-orange-400 font-bold text-sm">ID ${f.id}</span>
+            <div class="flex-1">
+              <p class="text-slate-300 text-sm mb-1">${(msgMap[f.id] || '').slice(0, 100)}…</p>
+              <div class="flex gap-2 flex-wrap mt-1">
+                ${f.violations.map(v => `<span class="badge badge-fail">${v}</span>`).join('')}
+              </div>
+              ${f.evidence ? `<p class="text-orange-300 text-xs mt-2">Evidence: <em>${f.evidence}</em></p>` : ''}
+              ${f.recommended_fix ? `<p class="text-slate-400 text-xs mt-1">Fix: ${f.recommended_fix}</p>` : ''}
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    function renderAlerts(routing) {
+      const alerts = routing.filter(r => r.alert_triggered && r.alert_message);
+      if (!alerts.length) return;
+      document.getElementById('alerts-section').style.display = '';
+      document.getElementById('alerts-container').innerHTML = alerts.map(a => `
+        <div class="alert-box rounded-lg p-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="font-bold text-red-400">ID ${a.id} — ${riskBadge(a.risk_level)} ${catBadge(a.category)}</p>
+              <p class="text-slate-300 text-sm mt-1">Team: <strong>${a.team}</strong> · SLA: <strong>${a.sla}</strong> · Escalate to: <strong>${a.escalation_path}</strong></p>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    function renderLogs(logs) {
+      document.getElementById('log-tbody').innerHTML = logs.map(l => `
+        <tr class="border-b border-slate-800">
+          <td class="py-2 px-3"><span class="badge badge-${l.stage === 'classification' || l.stage === 'reclassification' ? 'payments' : l.stage === 'risk_scoring' ? 'high' : 'technical'}">${l.stage}</span></td>
+          <td class="py-2 px-3 text-slate-400 text-xs">${l.model}</td>
+          <td class="py-2 px-3 text-slate-500 font-mono text-xs">${l.prompt_hash}</td>
+          <td class="py-2 px-3 text-xs">${l.few_shot_examples_included ? '<span class="text-emerald-400">Yes</span>' : '<span class="text-slate-500">No</span>'}</td>
+          <td class="py-2 px-3 text-slate-500 text-xs">${new Date(l.timestamp).toLocaleTimeString()}</td>
+        </tr>`).join('');
+    }
+
+    loadAll();
+    setInterval(loadAll, 30000);
+  </script>
+</body>
+</html>

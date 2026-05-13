@@ -28,3 +28,11 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Python ###
+__pycache__/
+*.pyc
+*.pyo
+.env
+triage/artifacts/
+triage/corrections.jsonl
