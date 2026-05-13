@@ -33,6 +33,25 @@ Automatically processes customer support messages through a 14-stage AI pipeline
 | CLI Interface | Rich |
 
 ---
+## Application Screenshots
+
+**Home Page**
+
+![Home Page Dashboard](image/1.png)
+
+**Escalation & Triage Result*
+
+![JEscalation & Triage Result](image/2.png)
+
+**Compilance Violations**
+
+![Compilance Violations](image/3.png)
+
+**LLM Log**
+
+![LLM Log](image/4.png)
+
+---
 
 ## Project Structure
 
